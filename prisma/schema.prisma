@@ -1,0 +1,90 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  // Preenchida na app (`env.databaseUrl`) e nos scripts `db:*` a partir de DB_* — não coloque DATABASE_URL no .env.
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int      @id @default(autoincrement())
+  username    String   @unique @db.VarChar(16)
+  email       String   @unique @db.VarChar(255)
+  password    String   @db.VarChar(32)
+  createTime  DateTime @default(now())
+
+  @@map("user")
+}
+
+model Cliente {
+  idClientes Int      @id @default(autoincrement())
+  nome       String   @db.VarChar(45)
+  telefone   String   @db.VarChar(45)
+  endereco   String?  @db.VarChar(45)
+  obs        String?  @db.VarChar(100)
+  pedidos    Pedido[]
+
+  @@map("Clientes")
+}
+
+model Marmita {
+  idMarmita           Int      @id @default(autoincrement())
+  descricao           String   @db.VarChar(255)
+  precoBase           Decimal  @db.Decimal(10, 2)
+  adicionalEmbalagem  Decimal  @db.Decimal(2, 2)
+  peso                Decimal  @db.Decimal(10, 2)
+  pedidos             Pedido[]
+
+  @@map("Marmitas")
+}
+
+model Pedido {
+  idPedidos          Int           @id @default(autoincrement())
+  dataPedido         DateTime      @default(now())
+  status             StatusPedido  @default(PENDENTE)
+  dataEntrega        DateTime?     @db.Date
+  quantidadeMarmitas Int
+  valorTotal         Decimal       @db.Decimal(10, 2)
+  cliente            Cliente       @relation(fields: [clientesIdClientes], references: [idClientes])
+  clientesIdClientes Int
+  marmita            Marmita       @relation(fields: [marmitasIdMarmita], references: [idMarmita])
+  marmitasIdMarmita  Int
+  pagamento          Pagamento?
+
+  @@map("Pedidos")
+}
+
+model Pagamento {
+  idPagamento      Int             @id @default(autoincrement())
+  tipo             TipoPagamento
+  status           StatusPagamento
+  valorPago        Decimal         @db.Decimal(10, 2)
+  dataHoraPagamento DateTime
+  pedido           Pedido          @relation(fields: [pedidosIdPedidos], references: [idPedidos])
+  pedidosIdPedidos Int             @unique
+
+  @@map("Pagamento")
+}
+
+enum StatusPedido {
+  PENDENTE
+  CONFIRMADO
+  PREPARANDO
+  ENTREGUE
+  CANCELADO
+}
+
+enum TipoPagamento {
+  DINHEIRO
+  CARTAO_CREDITO
+  CARTAO_DEBITO
+  PIX
+}
+
+enum StatusPagamento {
+  PENDENTE
+  PAGO
+  ESTORNADO
+}
