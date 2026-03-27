@@ -201,7 +201,7 @@ PENDENTE → CONFIRMADO → PREPARANDO → ENTREGUE
 | Parâmetro | Tipo | Padrão | Descrição |
 |-----------|------|--------|-----------|
 | `page` | number | `1` | Página atual |
-| `limit` | number | `20` | Itens por página (máx. `100`) |
+| `pageSize` | number | `20` | Itens por página (máx. `100`) |
 | `search` | string | — | Filtro por descrição |
 
 **Resposta:**
@@ -220,7 +220,7 @@ PENDENTE → CONFIRMADO → PREPARANDO → ENTREGUE
   "meta": {
     "total": 4,
     "page": 1,
-    "limit": 20,
+    "pageSize": 20,
     "totalPages": 1
   }
 }

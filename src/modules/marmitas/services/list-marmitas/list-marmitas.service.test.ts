@@ -17,7 +17,7 @@ describe('listMarmitas', () => {
 
     vi.mocked(listMarmitasRepository).mockResolvedValue({ data: fakeMarmitas, total: 1 });
 
-    const result = await listMarmitas({ page: 1, limit: 20 });
+    const result = await listMarmitas({ page: 1, pageSize: 20 });
 
     expect(result.data).toEqual(fakeMarmitas);
     expect(result.meta.total).toBe(1);
@@ -29,7 +29,7 @@ describe('listMarmitas', () => {
   it('should return an empty list when there are no marmitas', async () => {
     vi.mocked(listMarmitasRepository).mockResolvedValue({ data: [], total: 0 });
 
-    const result = await listMarmitas({ page: 1, limit: 20 });
+    const result = await listMarmitas({ page: 1, pageSize: 20 });
 
     expect(result.data).toHaveLength(0);
     expect(result.meta.total).toBe(0);
@@ -44,7 +44,7 @@ describe('listMarmitas', () => {
 
     vi.mocked(listMarmitasRepository).mockResolvedValue({ data: fakeMarmitas, total: 1 });
 
-    const result = await listMarmitas({ page: 1, limit: 20, search: 'Fit' });
+    const result = await listMarmitas({ page: 1, pageSize: 20, search: 'Fit' });
 
     expect(result.data[0].descricao).toBe('Marmita Fit');
   });
@@ -52,7 +52,7 @@ describe('listMarmitas', () => {
   it('should set hasNextPage to true when there are more pages', async () => {
     vi.mocked(listMarmitasRepository).mockResolvedValue({ data: [], total: 25 });
 
-    const result = await listMarmitas({ page: 1, limit: 20 });
+    const result = await listMarmitas({ page: 1, pageSize: 20 });
 
     expect(result.meta.hasNextPage).toBe(true);
     expect(result.meta.hasPreviousPage).toBe(false);
@@ -61,7 +61,7 @@ describe('listMarmitas', () => {
   it('should set hasPreviousPage to true when not on the first page', async () => {
     vi.mocked(listMarmitasRepository).mockResolvedValue({ data: [], total: 25 });
 
-    const result = await listMarmitas({ page: 2, limit: 20 });
+    const result = await listMarmitas({ page: 2, pageSize: 20 });
 
     expect(result.meta.hasPreviousPage).toBe(true);
   });

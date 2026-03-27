@@ -23,7 +23,7 @@ describe('listMarmitasController', () => {
   it('should call res.json with the service result', async () => {
     const fakeResult = {
       data: [],
-      meta: { total: 0, page: 1, limit: 20, totalPages: 0, hasNextPage: false, hasPreviousPage: false },
+      meta: { total: 0, page: 1, pageSize: 20, totalPages: 0, hasNextPage: false, hasPreviousPage: false },
     };
     vi.mocked(listMarmitas).mockResolvedValue(fakeResult);
 

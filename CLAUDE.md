@@ -155,13 +155,13 @@ All request input is validated with Zod at the **controller** level before reach
 
 All list endpoints use `paginate()` + `buildPaginatedResult()` from `shared/types/pagination.ts`.
 
-Default: `page=1`, `limit=20`. Max limit: `100`.
+Default: `page=1`, `pageSize=20`. Max pageSize: `100`.
 
 Response shape:
 ```json
 {
   "data": [...],
-  "meta": { "total": 0, "page": 1, "limit": 20, "totalPages": 0 }
+  "meta": { "total": 0, "page": 1, "pageSize": 20, "totalPages": 0 }
 }
 ```
 

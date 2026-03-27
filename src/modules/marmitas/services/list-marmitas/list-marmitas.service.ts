@@ -4,5 +4,5 @@ import { listMarmitas as listMarmitasRepository } from '@/modules/marmitas/repos
 
 export async function listMarmitas(query: ListMarmitasDTO) {
   const { data, total } = await listMarmitasRepository(query);
-  return buildPaginatedResult(data, total, query.page, query.limit);
+  return buildPaginatedResult(data, total, query.page, query.pageSize);
 }
