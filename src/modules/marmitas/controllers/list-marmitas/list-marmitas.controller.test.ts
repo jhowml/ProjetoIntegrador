@@ -1,12 +1,12 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { Request, Response, NextFunction } from "express";
-import { listMarmitasController } from "./list-marmitas.controller";
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { Request, Response, NextFunction } from 'express';
+import { listMarmitasController } from './list-marmitas.controller';
 
-vi.mock("../../services/list-marmitas/list-marmitas.service", () => ({
+vi.mock('../../services/list-marmitas/list-marmitas.service', () => ({
   listMarmitas: vi.fn(),
 }));
 
-import { listMarmitas } from "../../services/list-marmitas/list-marmitas.service";
+import { listMarmitas } from '../../services/list-marmitas/list-marmitas.service';
 
 function makeMocks() {
   const req = { query: {} } as unknown as Request;
@@ -15,15 +15,15 @@ function makeMocks() {
   return { req, res, next };
 }
 
-describe("listMarmitasController", () => {
+describe('listMarmitasController', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("deve chamar res.json com o resultado do service", async () => {
+  it('should call res.json with the service result', async () => {
     const fakeResult = {
       data: [],
-      meta: { total: 0, page: 1, limit: 20, totalPages: 0 },
+      meta: { total: 0, page: 1, limit: 20, totalPages: 0, hasNextPage: false, hasPreviousPage: false },
     };
     vi.mocked(listMarmitas).mockResolvedValue(fakeResult);
 
@@ -34,8 +34,8 @@ describe("listMarmitasController", () => {
     expect(next).not.toHaveBeenCalled();
   });
 
-  it("deve chamar next com o erro quando o service lançar exceção", async () => {
-    const error = new Error("falha no banco");
+  it('should call next with the error when the service throws', async () => {
+    const error = new Error('database failure');
     vi.mocked(listMarmitas).mockRejectedValue(error);
 
     const { req, res, next } = makeMocks();

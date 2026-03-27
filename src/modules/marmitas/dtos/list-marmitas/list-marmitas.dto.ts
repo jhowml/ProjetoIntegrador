@@ -5,5 +5,3 @@ export const listMarmitasSchema = z.object({
   limit: z.coerce.number().positive().max(100).default(20),
   search: z.string().optional(),
 });
-
-export type ListMarmitasDTO = z.infer<typeof listMarmitasSchema>;

@@ -4,7 +4,7 @@ This file documents the architecture, conventions, and structure of the project 
 
 ## Language conventions
 
-- **Project code and this file:** English (variable names, function names, folder names, comments, layer names).
+- **Project code and this file:** English (variable names, function names, folder names, comments, layer names, test descriptions).
 - **Domain terms:** pt-BR, matching the database schema (e.g. `marmita`, `cliente`, `pedido`, `pagamento`).
 - **Documents intended for other people** (README, API docs, user-facing content): always **pt-BR**.
 

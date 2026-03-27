@@ -1,7 +1,7 @@
 import { Prisma } from '@prisma/client';
-import { prisma } from '../../../config/database';
-import { paginate } from '../../../shared/types/pagination';
-import { ListMarmitasDTO } from '../dtos/list-marmitas/list-marmitas.dto';
+import { prisma } from '@/config/database';
+import { paginate } from '@/shared/types/pagination';
+import { ListMarmitasDTO } from '@/modules/marmitas/dtos/list-marmitas/list-marmitas.types';
 
 export async function listMarmitas(query: ListMarmitasDTO) {
   const { take, skip } = paginate(query.page, query.limit);
