@@ -3,32 +3,29 @@ import { ZodError } from 'zod';
 import { AppError } from '../errors/AppError';
 import { logger } from '../../config/logger';
 
-export function errorHandler(
-  err: Error,
-  _req: Request,
-  res: Response,
-  _next: NextFunction,
-): void {
+type ErrorBody = { code: string; message: string; fields?: Record<string, unknown> };
+type ResolvedError = { status: number; body: ErrorBody };
+
+function resolve(err: Error): ResolvedError {
   if (err instanceof AppError) {
-    res.status(err.statusCode).json({
-      error: { code: err.code ?? 'ERROR', message: err.message },
-    });
-    return;
+    return { status: err.statusCode, body: { code: err.code ?? 'ERROR', message: err.message } };
   }
 
   if (err instanceof ZodError) {
-    res.status(422).json({
-      error: {
-        code: 'VALIDATION_ERROR',
-        message: 'Dados inválidos.',
-        fields: err.flatten().fieldErrors,
-      },
-    });
-    return;
+    return {
+      status: 422,
+      body: { code: 'VALIDATION_ERROR', message: 'Dados inválidos.', fields: err.flatten().fieldErrors },
+    };
   }
 
-  logger.error(err);
-  res.status(500).json({
-    error: { code: 'INTERNAL_ERROR', message: 'Erro interno do servidor.' },
-  });
+  return { status: 500, body: { code: 'INTERNAL_ERROR', message: 'Erro interno do servidor.' } };
+}
+
+export function errorHandler(err: Error, _req: Request, res: Response, _next: NextFunction): void {
+  if (!(err instanceof AppError) && !(err instanceof ZodError)) {
+    logger.error({ err }, err.name);
+  }
+
+  const { status, body } = resolve(err);
+  res.status(status).json({ error: body });
 }

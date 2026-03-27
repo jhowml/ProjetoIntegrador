@@ -10,6 +10,8 @@ export interface PaginatedResult<T> {
     page: number;
     limit: number;
     totalPages: number;
+    hasNextPage: boolean;
+    hasPreviousPage: boolean;
   };
 }
 
@@ -27,6 +29,13 @@ export function buildPaginatedResult<T>(
 ): PaginatedResult<T> {
   return {
     data,
-    meta: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    meta: {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      hasNextPage: page < Math.ceil(total / limit),
+      hasPreviousPage: page > 1,
+    },
   };
 }

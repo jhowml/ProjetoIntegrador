@@ -8,6 +8,10 @@ This file documents the architecture, conventions, and structure of the project 
 - **Domain terms:** pt-BR, matching the database schema (e.g. `marmita`, `cliente`, `pedido`, `pagamento`).
 - **Documents intended for other people** (README, API docs, user-facing content): always **pt-BR**.
 
+## Comments
+
+Comments are only acceptable when the code cannot express intent on its own — e.g. non-obvious workarounds, regulatory constraints, or counter-intuitive decisions. Redundant comments that just restate what the code already says **must not** be written.
+
 ## Project Overview
 
 REST API for managing **marmita** (pre-prepared meal) sales — handling **clientes**, **pedidos**, and **pagamentos**.
