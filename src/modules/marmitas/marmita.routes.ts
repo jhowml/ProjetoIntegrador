@@ -5,8 +5,8 @@ import { createClienteController } from './controllers/create-clients/create-cli
 
 const router = Router();
 
-router.get('/', listMarmitasController);
-router.post('/', createMarmitaController);
-router.post('/', createClienteController)
+router.get('/marmitas', listMarmitasController);
+router.post('/marmitas', createMarmitaController);
+router.post('/clientes', createClienteController)
 
 export default router;
