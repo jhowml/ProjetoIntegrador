@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createCliente } from './create-cliente.service';
 
-vi.mock('@/modules/marmitas/repositories/cliente.repository', () => ({
+vi.mock('../../repositories/cliente.repository', () => ({
   createCliente: vi.fn(),
 }));
 
-import { createCliente as createClienteRepository } from '@/modules/marmitas/repositories/cliente.repository';
+import { createCliente as createClienteRepository } from '../../repositories/cliente.repository';
 
 const validData = {
   nome: 'João Silva',
