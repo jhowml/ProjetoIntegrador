@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Request, Response, NextFunction } from 'express';
-import { createClienteController } from './create-clientes.controller';
+import { createClienteController } from './create-cliente.controller';
 
-vi.mock('../../dtos/create-clients/create-cliente.dto', () => ({
+vi.mock('../../dtos/create-cliente/create-cliente.dto', () => ({
   createClienteSchema: {
     parse: vi.fn((body) => body),
   },
