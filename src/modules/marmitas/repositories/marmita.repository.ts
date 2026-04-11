@@ -22,3 +22,7 @@ export async function listMarmitas(query: ListMarmitasDTO) {
 export async function createMarmita(data: CreateMarmitaDTO) {
   return prisma.marmita.create({ data });
 }
+
+export async function findMarmitaById(id: number) {
+  return prisma.marmita.findUnique({ where: { idMarmita: id } });
+}
