@@ -8,7 +8,7 @@ vi.mock('../../repositories/marmita.repository', () => ({
 import { listMarmitas as listMarmitasRepository } from '../../repositories/marmita.repository';
 
 describe('listMarmitas', () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => { vi.clearAllMocks(); });
 
   it('should return a paginated list of marmitas', async () => {
     const fakeMarmitas = [

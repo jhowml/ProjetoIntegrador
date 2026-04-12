@@ -134,11 +134,16 @@ Requisição HTTP
 src/
 ├── config/               # Configurações globais (env, banco, logger)
 ├── modules/              # Um diretório por entidade de domínio
-│   └── <módulo>/
-│       ├── controllers/  # Handlers HTTP
-│       ├── services/     # Regras de negócio
-│       ├── repositories/ # Queries Prisma
-│       └── dtos/         # Schemas Zod + tipos TypeScript
+│   ├── marmitas/
+│   │   ├── controllers/  # Handlers HTTP
+│   │   ├── services/     # Regras de negócio
+│   │   ├── repositories/ # Queries Prisma
+│   │   └── dtos/         # Schemas Zod + tipos TypeScript
+│   └── clientes/
+│       ├── controllers/
+│       ├── services/
+│       ├── repositories/
+│       └── dtos/
 ├── shared/
 │   ├── errors/           # AppError e subclasses tipadas
 │   ├── middleware/       # Middleware Express (errorHandler, etc.)
@@ -195,6 +200,7 @@ PENDENTE → CONFIRMADO → PREPARANDO → ENTREGUE
 | Método | Rota | Descrição |
 |--------|------|-----------|
 | `GET` | `/api/marmitas` | Lista marmitas com paginação e busca |
+| `POST` | `/api/marmitas` | Cria uma nova marmita |
 
 **Parâmetros de query — `GET /api/marmitas`:**
 
@@ -204,7 +210,7 @@ PENDENTE → CONFIRMADO → PREPARANDO → ENTREGUE
 | `pageSize` | number | `20` | Itens por página (máx. `100`) |
 | `search` | string | — | Filtro por descrição |
 
-**Resposta:**
+**Resposta — `GET /api/marmitas`:**
 
 ```json
 {
@@ -219,6 +225,67 @@ PENDENTE → CONFIRMADO → PREPARANDO → ENTREGUE
   ],
   "meta": {
     "total": 4,
+    "page": 1,
+    "pageSize": 20,
+    "totalPages": 1
+  }
+}
+```
+
+---
+
+### Clientes
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| `GET` | `/api/clientes` | Lista clientes com paginação e busca |
+| `POST` | `/api/clientes` | Cria um novo cliente |
+| `PUT` | `/api/clientes/:id` | Atualiza dados de um cliente |
+| `DELETE` | `/api/clientes/:id` | Remove um cliente |
+
+**Parâmetros de query — `GET /api/clientes`:**
+
+| Parâmetro | Tipo | Padrão | Descrição |
+|-----------|------|--------|-----------|
+| `page` | number | `1` | Página atual |
+| `pageSize` | number | `20` | Itens por página (máx. `100`) |
+| `search` | string | — | Filtro por nome |
+
+**Body — `POST /api/clientes`:**
+
+| Campo | Tipo | Obrigatório | Descrição |
+|-------|------|-------------|-----------|
+| `nome` | string | sim | Nome do cliente (máx. 255) |
+| `endereco` | string | sim | Endereço (máx. 255) |
+| `telefone` | string | sim | Telefone (10–12 dígitos) |
+| `obs` | string | não | Observações (máx. 255) |
+
+**Body — `PUT /api/clientes/:id`:**
+
+Todos os campos são opcionais; ao menos um deve ser informado.
+
+| Campo | Tipo | Descrição |
+|-------|------|-----------|
+| `nome` | string | Nome do cliente (máx. 255) |
+| `endereco` | string | Endereço (máx. 255) |
+| `telefone` | string | Telefone (10–12 dígitos) |
+| `obs` | string | Observações (máx. 255) |
+
+**Resposta — `GET /api/clientes`:**
+
+```json
+{
+  "data": [
+    {
+      "idClientes": 1,
+      "nome": "João Silva",
+      "telefone": "11999999999",
+      "endereco": "Rua das Flores, 123",
+      "obs": null
+    }
+  ],
+  "meta": {
+    "total": 1,
     "page": 1,
     "pageSize": 20,
     "totalPages": 1
