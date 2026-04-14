@@ -2,7 +2,7 @@ import type { CreatePedidoDTO } from '@/modules/pedidos/dtos/create-pedido/creat
 import type { CreatePedidoPorts } from '@/composition/pedido-creation.ports';
 import { NotFoundError } from '@/shared/errors/AppError';
 
-export async function runCreatePedido(dto: CreatePedidoDTO, ports: CreatePedidoPorts) {
+export async function createPedido(dto: CreatePedidoDTO, ports: CreatePedidoPorts) {
   const { findClienteById, findMarmitaById, insertPedido } = ports;
 
   const [cliente, marmita] = await Promise.all([

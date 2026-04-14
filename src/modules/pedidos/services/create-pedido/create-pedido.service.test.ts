@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { runCreatePedido } from './create-pedido.service';
+import { createPedido } from './create-pedido.service';
 import { NotFoundError } from '@/shared/errors/AppError';
 import type { CreatePedidoPorts } from '@/composition/pedido-creation.ports';
 
@@ -27,7 +27,7 @@ function makePorts(overrides: Partial<CreatePedidoPorts> = {}): CreatePedidoPort
   };
 }
 
-describe('runCreatePedido', () => {
+describe('createPedido service', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -40,7 +40,7 @@ describe('runCreatePedido', () => {
       insertPedido,
     });
 
-    await expect(runCreatePedido(validDto, ports)).rejects.toThrow(NotFoundError);
+    await expect(createPedido(validDto, ports)).rejects.toThrow(NotFoundError);
     expect(insertPedido).not.toHaveBeenCalled();
   });
 
@@ -52,7 +52,7 @@ describe('runCreatePedido', () => {
       insertPedido,
     });
 
-    await expect(runCreatePedido(validDto, ports)).rejects.toThrow(NotFoundError);
+    await expect(createPedido(validDto, ports)).rejects.toThrow(NotFoundError);
     expect(insertPedido).not.toHaveBeenCalled();
   });
 
@@ -64,7 +64,7 @@ describe('runCreatePedido', () => {
     insertPedido.mockResolvedValue(fakePedido);
     const ports = makePorts({ findClienteById, findMarmitaById, insertPedido });
 
-    const result = await runCreatePedido(validDto, ports);
+    const result = await createPedido(validDto, ports);
 
     expect(insertPedido).toHaveBeenCalledWith({
       clientesIdClientes: 1,
@@ -83,7 +83,7 @@ describe('runCreatePedido', () => {
     const insertPedido = vi.fn().mockResolvedValue({});
     const ports = makePorts({ findClienteById, findMarmitaById, insertPedido });
 
-    await runCreatePedido({ ...validDto, dataEntrega }, ports);
+    await createPedido({ ...validDto, dataEntrega }, ports);
 
     expect(insertPedido).toHaveBeenCalledWith(
       expect.objectContaining({
