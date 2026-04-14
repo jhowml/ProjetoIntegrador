@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 import { prisma } from '@/config/database';
 
@@ -23,4 +24,17 @@ export async function insertPedido(input: PedidoInsertInput) {
       ...(input.dataEntrega !== undefined && { dataEntrega: input.dataEntrega }),
     },
   });
+}
+
+export async function findPedidoById(id: number) {
+  return prisma.pedido.findUnique({ where: { idPedidos: id } });
+}
+
+export async function updatePedido(id: number, data: Prisma.PedidoUncheckedUpdateInput) {
+  return prisma.pedido.update({ where: { idPedidos: id }, data });
+}
+
+export async function deletePedido(id: number) {
+  await prisma.pagamento.deleteMany({ where: { pedidosIdPedidos: id } });
+  return prisma.pedido.delete({ where: { idPedidos: id } });
 }
