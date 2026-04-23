@@ -32,6 +32,10 @@ export async function updateMarmita(id: number, data: UpdateMarmitaBodyDTO) {
   return prisma.marmita.update({ where: { idMarmita: id }, data });
 }
 
+export async function countPedidosByMarmita(id: number) {
+  return prisma.pedido.count({ where: { marmitasIdMarmita: id } });
+}
+
 export async function deleteMarmita(id: number) {
   return prisma.marmita.delete({ where: { idMarmita: id } });
 }
