@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { deleteClienteParamsSchema } from '../../dtos/delete-cliente/delete-cliente.dto';
-import { deleteCliente } from '../../services/delete-cliente/delete-cliente.service';
+import { deleteCliente } from '@/composition/cliente-deletion';
 
 export async function deleteClienteController(req: Request, res: Response, next: NextFunction) {
   try {

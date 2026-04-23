@@ -32,6 +32,10 @@ export async function updateCliente(id: number, data: UpdateClienteBodyDTO) {
   return prisma.cliente.update({ where: { idClientes: id }, data });
 }
 
+export async function countPedidosByCliente(id: number) {
+  return prisma.pedido.count({ where: { clientesIdClientes: id } });
+}
+
 export async function deleteCliente(id: number) {
   return prisma.cliente.delete({ where: { idClientes: id } });
 }
