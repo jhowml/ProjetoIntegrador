@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import pinoHttp from 'pino-http';
 import { logger } from './config/logger';
 import { errorHandler } from './shared/middleware/errorHandler.middleware';
@@ -7,6 +8,7 @@ import clienteRoutes from './modules/clientes/cliente.routes';
 import pedidoRoutes from './modules/pedidos/pedido.routes';
 
 const app = express();
+app.use(cors({ origin: ['http://localhost:3000', 'http://localhost:3001'] }));
 app.use(express.json());
 app.use(pinoHttp({ logger }));
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
