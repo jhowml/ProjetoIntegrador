@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from 'express';
 import { deleteMarmitaParamsSchema } from '../../dtos/delete-marmita/delete-marmita.dto';
-import { deleteMarmita } from '../../services/delete-marmita/delete-marmita.service';
+import { deleteMarmita } from '@/composition/marmita-deletion';
 
 export async function deleteMarmitaController(req: Request, res: Response, next: NextFunction) {
   try {

@@ -1,13 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { Request, Response, NextFunction } from 'express';
 import { deleteMarmitaController } from './delete-marmita.controller';
-import { NotFoundError } from '@/shared/errors/AppError';
+import { ConflictError, NotFoundError } from '@/shared/errors/AppError';
 
-vi.mock('../../services/delete-marmita/delete-marmita.service', () => ({
+vi.mock('@/composition/marmita-deletion', () => ({
   deleteMarmita: vi.fn(),
 }));
 
-import { deleteMarmita } from '../../services/delete-marmita/delete-marmita.service';
+import { deleteMarmita } from '@/composition/marmita-deletion';
 
 function makeMocks(params = { id: '1' }) {
   const req = { params } as unknown as Request;
@@ -39,6 +39,15 @@ describe('deleteMarmitaController', () => {
     await deleteMarmitaController(req, res, next);
 
     expect(next).toHaveBeenCalledWith(expect.any(NotFoundError));
+  });
+
+  it('should call next with ConflictError when marmita has pedidos', async () => {
+    vi.mocked(deleteMarmita).mockRejectedValue(new ConflictError('Marmita possui pedidos e não pode ser removida'));
+
+    const { req, res, next } = makeMocks();
+    await deleteMarmitaController(req, res, next);
+
+    expect(next).toHaveBeenCalledWith(expect.any(ConflictError));
   });
 
   it('should call next with validation error when params are invalid', async () => {
