@@ -1,6 +1,38 @@
 import { Prisma } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 import { prisma } from '@/config/database';
+import { paginate } from '@/shared/types/pagination';
+import { ListPedidosDTO } from '@/modules/pedidos/dtos/list-pedidos/list-pedidos.types';
+
+export async function listPedidos(query: ListPedidosDTO) {
+  const { take, skip } = paginate(query.page, query.pageSize);
+
+  const where: Prisma.PedidoWhereInput = {
+    ...(query.status && { status: query.status }),
+    ...(query.clienteId && { clientesIdClientes: query.clienteId }),
+    ...(query.marmitaId && { marmitasIdMarmita: query.marmitaId }),
+    ...(query.search && {
+      OR: [
+        { cliente: { nome: { contains: query.search } } },
+        { marmita: { descricao: { contains: query.search } } },
+        ...(!isNaN(Number(query.search)) ? [{ idPedidos: Number(query.search) }] : []),
+      ],
+    }),
+    ...((query.dataInicio || query.dataFim) && {
+      dataPedido: {
+        ...(query.dataInicio && { gte: query.dataInicio }),
+        ...(query.dataFim && { lte: query.dataFim }),
+      },
+    }),
+  };
+
+  const [data, total] = await prisma.$transaction([
+    prisma.pedido.findMany({ where, take, skip, orderBy: { dataPedido: 'desc' }, include: { cliente: true, marmita: true } }),
+    prisma.pedido.count({ where }),
+  ]);
+
+  return { data, total };
+}
 
 export type PedidoInsertInput = {
   clientesIdClientes: number;

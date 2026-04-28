@@ -6,12 +6,14 @@ import { errorHandler } from './shared/middleware/errorHandler.middleware';
 import marmitaRoutes from './modules/marmitas/marmita.routes';
 import clienteRoutes from './modules/clientes/cliente.routes';
 import pedidoRoutes from './modules/pedidos/pedido.routes';
+import dashboardRoutes from './modules/dashboard/dashboard.routes';
 
 const app = express();
 app.use(cors({ origin: ['http://localhost:3000', 'http://localhost:3001'] }));
 app.use(express.json());
 app.use(pinoHttp({ logger }));
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
+app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/marmitas', marmitaRoutes);
 app.use('/api/clientes', clienteRoutes);
 app.use('/api/pedidos', pedidoRoutes);
