@@ -1,4 +1,4 @@
-export type MysqlConnectionParts = {
+export type DatabaseConnectionParts = {
   host: string;
   port: number;
   user: string;
@@ -6,8 +6,8 @@ export type MysqlConnectionParts = {
   database: string;
 };
 
-export function buildMysqlDatabaseUrl(parts: MysqlConnectionParts): string {
+export function buildDatabaseUrl(parts: DatabaseConnectionParts): string {
   const u = encodeURIComponent(parts.user);
   const p = encodeURIComponent(parts.password);
-  return `mysql://${u}:${p}@${parts.host}:${parts.port}/${parts.database}`;
+  return `postgresql://${u}:${p}@${parts.host}:${parts.port}/${parts.database}`;
 }
