@@ -8,10 +8,9 @@ const existingPedido = {
   dataPedido: new Date(),
   status: 'PENDENTE' as const,
   dataEntrega: null,
-  quantidadeMarmitas: 2,
   valorTotal: '21.00',
   clientesIdClientes: 1,
-  marmitasIdMarmita: 2,
+  itens: [{ idPedidoItem: 1, pedidosIdPedidos: 1, marmitasIdMarmita: 2, quantidade: 2, precoUnitario: '10.50' }],
 };
 
 const fakeMarmita = {
@@ -28,6 +27,7 @@ function makePorts(overrides: Partial<UpdatePedidoPorts> = {}): UpdatePedidoPort
     findClienteById: vi.fn(),
     findMarmitaById: vi.fn(),
     updatePedido: vi.fn(),
+    replacePedidoItens: vi.fn(),
     ...overrides,
   };
 }
@@ -56,19 +56,21 @@ describe('updatePedido service', () => {
     expect(ports.updatePedido).not.toHaveBeenCalled();
   });
 
-  it('should throw NotFoundError when marmita is missing during price recalc', async () => {
+  it('should throw NotFoundError when itens contain an invalid marmitaId', async () => {
     const ports = makePorts({
       findPedidoById: vi.fn().mockResolvedValue(existingPedido),
       findMarmitaById: vi.fn().mockResolvedValue(null),
     });
 
-    await expect(updatePedido(1, { quantidadeMarmitas: 5 }, ports)).rejects.toThrow(NotFoundError);
-    expect(ports.updatePedido).not.toHaveBeenCalled();
+    await expect(
+      updatePedido(1, { itens: [{ marmitaId: 999, quantidade: 2 }] }, ports),
+    ).rejects.toThrow(NotFoundError);
+    expect(ports.replacePedidoItens).not.toHaveBeenCalled();
   });
 
   it('should update only status without fetching marmita', async () => {
     const findMarmitaById = vi.fn();
-    const updatePedidoRepo = vi.fn().mockResolvedValue({ ...existingPedido, status: 'CONFIRMADO' });
+    const updatePedidoRepo = vi.fn().mockResolvedValue(existingPedido);
     const ports = makePorts({
       findPedidoById: vi.fn().mockResolvedValue(existingPedido),
       findMarmitaById,
@@ -78,33 +80,36 @@ describe('updatePedido service', () => {
     await updatePedido(1, { status: 'CONFIRMADO' }, ports);
 
     expect(findMarmitaById).not.toHaveBeenCalled();
+    expect(ports.replacePedidoItens).not.toHaveBeenCalled();
     expect(updatePedidoRepo).toHaveBeenCalledWith(1, { status: 'CONFIRMADO' });
   });
 
-  it('should recalc valorTotal when quantidadeMarmitas changes', async () => {
+  it('should call replacePedidoItens with new items and recalculated total', async () => {
     const findMarmitaById = vi.fn().mockResolvedValue(fakeMarmita);
-    const updatePedidoRepo = vi.fn().mockResolvedValue({});
+    const replacePedidoItens = vi.fn().mockResolvedValue(undefined);
     const ports = makePorts({
-      findPedidoById: vi.fn().mockResolvedValue(existingPedido),
+      findPedidoById: vi
+        .fn()
+        .mockResolvedValueOnce(existingPedido)
+        .mockResolvedValueOnce(existingPedido),
       findMarmitaById,
-      updatePedido: updatePedidoRepo,
+      replacePedidoItens,
     });
 
-    await updatePedido(1, { quantidadeMarmitas: 3 }, ports);
+    await updatePedido(1, { itens: [{ marmitaId: 2, quantidade: 5 }] }, ports);
 
-    expect(findMarmitaById).toHaveBeenCalledWith(2);
-    expect(updatePedidoRepo).toHaveBeenCalledWith(
+    expect(replacePedidoItens).toHaveBeenCalledWith(
       1,
-      expect.objectContaining({
-        quantidadeMarmitas: 3,
-        valorTotal: expect.any(Object),
-      }),
+      expect.arrayContaining([
+        expect.objectContaining({ marmitasIdMarmita: 2, quantidade: 5 }),
+      ]),
+      expect.any(Object),
     );
   });
 
   it('should validate cliente and persist clienteId', async () => {
     const findClienteById = vi.fn().mockResolvedValue({ idClientes: 5 });
-    const updatePedidoRepo = vi.fn().mockResolvedValue({});
+    const updatePedidoRepo = vi.fn().mockResolvedValue(existingPedido);
     const ports = makePorts({
       findPedidoById: vi.fn().mockResolvedValue(existingPedido),
       findClienteById,

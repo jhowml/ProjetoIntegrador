@@ -24,20 +24,33 @@ export async function updatePedido(id: number, dto: UpdatePedidoBodyDTO, ports: 
     data.dataEntrega = dto.dataEntrega;
   }
 
-  const needsPriceRecalc = dto.marmitaId !== undefined || dto.quantidadeMarmitas !== undefined;
-
-  if (needsPriceRecalc) {
-    const effectiveMarmitaId = dto.marmitaId ?? existing.marmitasIdMarmita;
-    const effectiveQty = dto.quantidadeMarmitas ?? existing.quantidadeMarmitas;
-
-    const marmita = await ports.findMarmitaById(effectiveMarmitaId);
-    if (!marmita) throw new NotFoundError('Marmita');
-
-    const unitPrice = new Decimal(marmita.precoBase.toString()).plus(marmita.adicionalEmbalagem.toString());
-    data.valorTotal = unitPrice.mul(effectiveQty);
-    if (dto.marmitaId !== undefined) data.marmitasIdMarmita = dto.marmitaId;
-    if (dto.quantidadeMarmitas !== undefined) data.quantidadeMarmitas = dto.quantidadeMarmitas;
+  if (Object.keys(data).length > 0) {
+    await ports.updatePedido(id, data);
   }
 
-  return ports.updatePedido(id, data);
+  if (dto.itens !== undefined) {
+    const marmitas = await Promise.all(
+      dto.itens.map((item) => ports.findMarmitaById(item.marmitaId)),
+    );
+    marmitas.forEach((marmita, i) => {
+      if (!marmita) throw new NotFoundError(`Marmita (id ${dto.itens![i].marmitaId})`);
+    });
+
+    const itens = dto.itens.map((item, i) => ({
+      marmitasIdMarmita: item.marmitaId,
+      quantidade: item.quantidade,
+      precoUnitario: new Decimal(marmitas[i]!.precoBase.toString()).plus(
+        marmitas[i]!.adicionalEmbalagem.toString(),
+      ),
+    }));
+
+    const novoValorTotal = itens.reduce(
+      (sum, item) => sum.plus(item.precoUnitario.mul(item.quantidade)),
+      new Decimal(0),
+    );
+
+    await ports.replacePedidoItens(id, itens, novoValorTotal);
+  }
+
+  return ports.findPedidoById(id);
 }

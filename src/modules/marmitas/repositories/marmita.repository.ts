@@ -9,6 +9,7 @@ export async function listMarmitas(query: ListMarmitasDTO) {
   const { take, skip } = paginate(query.page, query.pageSize);
 
   const where: Prisma.MarmitaWhereInput = {
+    deletedAt: null,
     ...(query.search && { descricao: { contains: query.search } }),
   };
 
@@ -25,7 +26,7 @@ export async function createMarmita(data: CreateMarmitaDTO) {
 }
 
 export async function findMarmitaById(id: number) {
-  return prisma.marmita.findUnique({ where: { idMarmita: id } });
+  return prisma.marmita.findFirst({ where: { idMarmita: id, deletedAt: null } });
 }
 
 export async function updateMarmita(id: number, data: UpdateMarmitaBodyDTO) {
@@ -33,5 +34,5 @@ export async function updateMarmita(id: number, data: UpdateMarmitaBodyDTO) {
 }
 
 export async function deleteMarmita(id: number) {
-  return prisma.marmita.delete({ where: { idMarmita: id } });
+  return prisma.marmita.update({ where: { idMarmita: id }, data: { deletedAt: new Date() } });
 }

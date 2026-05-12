@@ -13,7 +13,7 @@ export async function getDashboard() {
       id: p.idPedidos,
       clienteNome: p.cliente.nome,
       dataEntrega: p.dataEntrega,
-      quantidadeMarmitas: p.quantidadeMarmitas,
+      quantidadeMarmitas: p.itens.reduce((sum, item) => sum + item.quantidade, 0),
       status: p.status,
     })),
   };

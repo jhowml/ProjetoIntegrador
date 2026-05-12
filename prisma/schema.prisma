@@ -30,12 +30,13 @@ model Cliente {
 }
 
 model Marmita {
-  idMarmita           Int      @id @default(autoincrement())
-  descricao           String   @db.VarChar(255)
-  precoBase           Decimal  @db.Decimal(10, 2)
-  adicionalEmbalagem  Decimal  @db.Decimal(2, 2)
-  peso                Decimal  @db.Decimal(10, 2)
-  pedidos             Pedido[]
+  idMarmita           Int           @id @default(autoincrement())
+  descricao           String        @db.VarChar(255)
+  precoBase           Decimal       @db.Decimal(10, 2)
+  adicionalEmbalagem  Decimal       @db.Decimal(2, 2)
+  peso                Decimal       @db.Decimal(10, 2)
+  deletedAt           DateTime?     @db.DateTime(3)
+  itensPedido         PedidoItem[]
 
   @@map("Marmitas")
 }
@@ -45,15 +46,25 @@ model Pedido {
   dataPedido         DateTime      @default(now())
   status             StatusPedido  @default(PENDENTE)
   dataEntrega        DateTime?     @db.Date
-  quantidadeMarmitas Int
   valorTotal         Decimal       @db.Decimal(10, 2)
   cliente            Cliente       @relation(fields: [clientesIdClientes], references: [idClientes])
   clientesIdClientes Int
-  marmita            Marmita       @relation(fields: [marmitasIdMarmita], references: [idMarmita])
-  marmitasIdMarmita  Int
+  itens              PedidoItem[]
   pagamento          Pagamento?
 
   @@map("Pedidos")
+}
+
+model PedidoItem {
+  idPedidoItem      Int      @id @default(autoincrement())
+  quantidade        Int
+  precoUnitario     Decimal  @db.Decimal(10, 2)
+  pedido            Pedido   @relation(fields: [pedidosIdPedidos], references: [idPedidos], onDelete: Cascade)
+  pedidosIdPedidos  Int
+  marmita           Marmita  @relation(fields: [marmitasIdMarmita], references: [idMarmita])
+  marmitasIdMarmita Int
+
+  @@map("PedidoItens")
 }
 
 model Pagamento {

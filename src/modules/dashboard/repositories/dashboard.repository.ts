@@ -9,7 +9,7 @@ export async function getDashboardData() {
     prisma.pedido.findMany({
       take: 5,
       orderBy: { dataPedido: 'desc' },
-      include: { cliente: true },
+      include: { cliente: true, itens: true },
     }),
   ]);
 
