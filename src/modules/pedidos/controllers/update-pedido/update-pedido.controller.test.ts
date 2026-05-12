@@ -12,10 +12,9 @@ import { updatePedido } from '@/composition/pedido-update';
 const fakePedido = {
   idPedidos: 1,
   status: 'CONFIRMADO' as const,
-  quantidadeMarmitas: 2,
   valorTotal: '21.00',
   clientesIdClientes: 1,
-  marmitasIdMarmita: 2,
+  itens: [],
   dataPedido: new Date(),
   dataEntrega: null,
 };

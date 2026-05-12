@@ -5,17 +5,26 @@ import type { CreatePedidoPorts } from '@/composition/pedido-creation.ports';
 
 const validDto = {
   clienteId: 1,
-  marmitaId: 2,
-  quantidadeMarmitas: 3,
+  itens: [
+    { marmitaId: 2, quantidade: 3 },
+    { marmitaId: 3, quantidade: 1 },
+  ],
 };
 
 const fakeCliente = { idClientes: 1, nome: 'João', telefone: '11999999999', endereco: 'Rua A', obs: null };
-const fakeMarmita = {
+const fakeMarmita2 = {
   idMarmita: 2,
   descricao: 'Marmita P',
   precoBase: '10.00',
   adicionalEmbalagem: '0.50',
   peso: '300.00',
+};
+const fakeMarmita3 = {
+  idMarmita: 3,
+  descricao: 'Marmita M',
+  precoBase: '14.00',
+  adicionalEmbalagem: '0.50',
+  peso: '500.00',
 };
 
 function makePorts(overrides: Partial<CreatePedidoPorts> = {}): CreatePedidoPorts {
@@ -36,7 +45,7 @@ describe('createPedido service', () => {
     const insertPedido = vi.fn();
     const ports = makePorts({
       findClienteById: vi.fn().mockResolvedValue(null),
-      findMarmitaById: vi.fn().mockResolvedValue(fakeMarmita),
+      findMarmitaById: vi.fn().mockResolvedValue(fakeMarmita2),
       insertPedido,
     });
 
@@ -44,7 +53,7 @@ describe('createPedido service', () => {
     expect(insertPedido).not.toHaveBeenCalled();
   });
 
-  it('should throw NotFoundError when marmita does not exist', async () => {
+  it('should throw NotFoundError when a marmita does not exist', async () => {
     const insertPedido = vi.fn();
     const ports = makePorts({
       findClienteById: vi.fn().mockResolvedValue(fakeCliente),
@@ -56,39 +65,49 @@ describe('createPedido service', () => {
     expect(insertPedido).not.toHaveBeenCalled();
   });
 
-  it('should pass pricing fields to insertPedido', async () => {
-    const findClienteById = vi.fn().mockResolvedValue(fakeCliente);
-    const findMarmitaById = vi.fn().mockResolvedValue(fakeMarmita);
-    const insertPedido = vi.fn();
-    const fakePedido = { idPedidos: 1, status: 'PENDENTE' as const, valorTotal: '31.50' };
-    insertPedido.mockResolvedValue(fakePedido);
-    const ports = makePorts({ findClienteById, findMarmitaById, insertPedido });
+  it('should pass items with precoUnitario to insertPedido', async () => {
+    const findMarmitaById = vi
+      .fn()
+      .mockResolvedValueOnce(fakeMarmita2)
+      .mockResolvedValueOnce(fakeMarmita3);
+    const insertPedido = vi.fn().mockResolvedValue({ idPedidos: 1 });
+    const ports = makePorts({
+      findClienteById: vi.fn().mockResolvedValue(fakeCliente),
+      findMarmitaById,
+      insertPedido,
+    });
 
     const result = await createPedido(validDto, ports);
 
-    expect(insertPedido).toHaveBeenCalledWith({
-      clientesIdClientes: 1,
-      marmitasIdMarmita: 2,
-      quantidadeMarmitas: 3,
-      precoBase: '10.00',
-      adicionalEmbalagem: '0.50',
-    });
-    expect(result).toEqual(fakePedido);
+    expect(insertPedido).toHaveBeenCalledWith(
+      expect.objectContaining({
+        clientesIdClientes: 1,
+        itens: expect.arrayContaining([
+          expect.objectContaining({ marmitasIdMarmita: 2, quantidade: 3 }),
+          expect.objectContaining({ marmitasIdMarmita: 3, quantidade: 1 }),
+        ]),
+      }),
+    );
+    expect(result).toEqual({ idPedidos: 1 });
   });
 
   it('should pass dataEntrega when provided', async () => {
     const dataEntrega = new Date('2026-06-15T12:00:00.000Z');
-    const findClienteById = vi.fn().mockResolvedValue(fakeCliente);
-    const findMarmitaById = vi.fn().mockResolvedValue(fakeMarmita);
+    const findMarmitaById = vi
+      .fn()
+      .mockResolvedValueOnce(fakeMarmita2)
+      .mockResolvedValueOnce(fakeMarmita3);
     const insertPedido = vi.fn().mockResolvedValue({});
-    const ports = makePorts({ findClienteById, findMarmitaById, insertPedido });
+    const ports = makePorts({
+      findClienteById: vi.fn().mockResolvedValue(fakeCliente),
+      findMarmitaById,
+      insertPedido,
+    });
 
     await createPedido({ ...validDto, dataEntrega }, ports);
 
     expect(insertPedido).toHaveBeenCalledWith(
-      expect.objectContaining({
-        dataEntrega,
-      }),
+      expect.objectContaining({ dataEntrega }),
     );
   });
 });

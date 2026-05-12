@@ -10,8 +10,7 @@ import { createPedido } from '@/composition/pedido-creation';
 
 const validBody = {
   clienteId: 1,
-  marmitaId: 2,
-  quantidadeMarmitas: 2,
+  itens: [{ marmitaId: 2, quantidade: 2 }],
 };
 
 const fakePedido = {
@@ -19,10 +18,9 @@ const fakePedido = {
   dataPedido: new Date(),
   status: 'PENDENTE' as const,
   dataEntrega: null,
-  quantidadeMarmitas: 2,
   valorTotal: '21.00',
   clientesIdClientes: 1,
-  marmitasIdMarmita: 2,
+  itens: [],
 };
 
 function makeMocks(body = validBody) {
@@ -58,7 +56,7 @@ describe('createPedidoController', () => {
   });
 
   it('should call next with validation error when body is invalid', async () => {
-    const { req, res, next } = makeMocks({ clienteId: 0, marmitaId: 1, quantidadeMarmitas: 1 } as never);
+    const { req, res, next } = makeMocks({ clienteId: 0, itens: [] } as never);
     await createPedidoController(req, res, next);
 
     expect(next).toHaveBeenCalled();

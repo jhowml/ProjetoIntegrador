@@ -12,11 +12,10 @@ const fakePedidoRecente = {
   dataPedido: new Date('2026-04-20'),
   status: 'PREPARANDO' as const,
   dataEntrega: new Date('2026-04-21'),
-  quantidadeMarmitas: 1,
   valorTotal: '19.00',
   clientesIdClientes: 1,
-  marmitasIdMarmita: 1,
   cliente: { idClientes: 1, nome: 'Jorge', telefone: '11999999999', endereco: null, obs: null },
+  itens: [{ idPedidoItem: 1, pedidosIdPedidos: 1, marmitasIdMarmita: 1, quantidade: 1, precoUnitario: '19.00' }],
 };
 
 describe('getDashboard service', () => {
