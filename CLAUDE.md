@@ -16,7 +16,7 @@ Comments are only acceptable when the code cannot express intent on its own — 
 
 REST API for managing **marmita** (pre-prepared meal) sales — handling **clientes**, **pedidos**, and **pagamentos**.
 
-**Stack:** Node.js · TypeScript · Express · Prisma · MySQL · Vitest
+**Stack:** Node.js · TypeScript · Express · Prisma · PostgreSQL · Vitest
 
 ---
 
@@ -30,7 +30,7 @@ Request
         └─► Controller   (HTTP layer)
               └─► Service     (business logic)
                     └─► Repository  (data access)
-                          └─► Prisma / MySQL
+                          └─► Prisma / PostgreSQL
 ```
 
 ---
