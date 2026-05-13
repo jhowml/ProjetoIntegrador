@@ -15,7 +15,34 @@ import authRoutes from './modules/auth/auth.routes';
 const app = express();
 app.use(cors({ origin: env.ALLOWED_ORIGINS.split(',') }));
 app.use(express.json());
-app.use(pinoHttp({ logger }));
+const SENSITIVE_FIELDS = ['password', 'senha', 'token', 'authorization', 'Authorization'];
+
+function maskFields(obj: Record<string, unknown>): Record<string, unknown> {
+  if (!obj || typeof obj !== 'object') return obj;
+  return Object.fromEntries(
+    Object.entries(obj).map(([k, v]) =>
+      SENSITIVE_FIELDS.some(f => k.toLowerCase() === f.toLowerCase())
+        ? [k, '[REDACTED]']
+        : [k, typeof v === 'object' && v !== null ? maskFields(v as Record<string, unknown>) : v]
+    )
+  );
+}
+
+app.use(pinoHttp({
+  logger,
+  serializers: {
+    req(req) {
+      return {
+        method: req.method,
+        url: req.url,
+        body: req.raw.body ? maskFields(req.raw.body as Record<string, unknown>) : undefined,
+      };
+    },
+    res(res) {
+      return { statusCode: res.statusCode };
+    },
+  },
+}));
 app.get('/health', async (_req, res) => {
   try {
     await prisma.$queryRawUnsafe('SELECT 1');
