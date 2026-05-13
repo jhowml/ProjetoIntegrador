@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import pinoHttp from 'pino-http';
 import { logger } from './config/logger';
+import { env } from './config/env';
 import { errorHandler } from './shared/middleware/errorHandler.middleware';
 import { authenticate } from './shared/middleware/auth.middleware';
 import marmitaRoutes from './modules/marmitas/marmita.routes';
@@ -11,7 +12,7 @@ import dashboardRoutes from './modules/dashboard/dashboard.routes';
 import authRoutes from './modules/auth/auth.routes';
 
 const app = express();
-app.use(cors({ origin: ['http://localhost:3000', 'http://localhost:3001'] }));
+app.use(cors({ origin: env.ALLOWED_ORIGINS.split(',') }));
 app.use(express.json());
 app.use(pinoHttp({ logger }));
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
