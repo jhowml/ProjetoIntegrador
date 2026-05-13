@@ -1,11 +1,12 @@
 # Marmitas API
 
-API REST em Node.js + TypeScript + Express + Prisma (MySQL) para controle de vendas de marmitas.
+API REST em Node.js + TypeScript + Express + Prisma (PostgreSQL) para controle de vendas de marmitas.
 
 ---
 
 ## Sumário
 
+- [Infraestrutura](#infraestrutura)
 - [Pré-requisitos](#pré-requisitos)
 - [Configuração do ambiente local](#configuração-do-ambiente-local)
 - [Arquitetura](#arquitetura)
@@ -18,11 +19,63 @@ API REST em Node.js + TypeScript + Express + Prisma (MySQL) para controle de ven
 
 ---
 
+## Infraestrutura
+
+| Camada | Serviço | Plano |
+|--------|---------|-------|
+| **Backend** | [Render](https://render.com) — Web Service | Free |
+| **Frontend** | [Vercel](https://vercel.com) | Hobby (Free) |
+| **Banco de dados** | [Neon](https://neon.tech) — PostgreSQL serverless | Free |
+
+### Variáveis de ambiente — Render (produção)
+
+| Variável | Descrição |
+|----------|-----------|
+| `DATABASE_URL` | Connection string completa do Neon (incluindo `sslmode=require`) |
+| `JWT_SECRET` | Segredo do JWT (**mínimo 10 caracteres**) |
+| `JWT_EXPIRES_IN` | Tempo de expiração do token (ex.: `7d`) |
+| `APP_USERNAME` | Usuário de acesso à aplicação |
+| `APP_PASSWORD` | Senha de acesso à aplicação |
+| `ALLOWED_ORIGINS` | Origens permitidas no CORS — inclua a URL do frontend no Vercel (ex.: `https://seu-projeto.vercel.app`) |
+| `NODE_ENV` | `production` |
+
+> Use `DATABASE_URL` com a string completa do Neon em produção. As variáveis `DB_*` individuais são para ambiente local.
+
+### Variáveis de ambiente — Vercel (produção)
+
+| Variável | Descrição |
+|----------|-----------|
+| `NEXT_PUBLIC_API_URL` | URL base do backend no Render (ex.: `https://seu-projeto.onrender.com`) |
+
+### Build e deploy
+
+**Render — Build Command:**
+```
+npm install && npm run build && npx tsx scripts/prisma-env.ts migrate resolve --rolled-back 20250325120000_init_schema; npm run db:migrate:deploy
+```
+
+**Render — Start Command:**
+```
+npm start
+```
+
+O `postinstall` regenera o Prisma Client automaticamente a cada deploy (`prisma generate`).
+
+### Health check
+
+```bash
+GET /health
+# {"status":"ok","db":"ok"}
+```
+
+Responde `503` se o banco estiver inacessível.
+
+---
+
 ## Pré-requisitos
 
 - [Node.js](https://nodejs.org/) **20+**
-- [MySQL](https://dev.mysql.com/downloads/) **8+** em execução
-- Conta de usuário MySQL com permissão para criar/usar o banco da aplicação
+- Instância PostgreSQL acessível (local ou remota)
 
 ---
 
@@ -48,31 +101,23 @@ Edite o `.env`:
 |----------|-----------|
 | `PORT` | Porta HTTP (padrão `3000`) |
 | `NODE_ENV` | `development`, `production` ou `test` |
-| `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` | Conexão MySQL — a URL é montada internamente a partir dessas variáveis; não use `DATABASE_URL` diretamente |
+| `DATABASE_URL` | Connection string completa (preferencial para Neon/produção) |
+| `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME` | Alternativa ao `DATABASE_URL` para conexão local |
+| `ALLOWED_ORIGINS` | Origens permitidas no CORS (padrão: `http://localhost:3000,http://localhost:3001`) |
 | `JWT_SECRET` | Segredo do JWT (**mínimo 10 caracteres**) |
 | `JWT_EXPIRES_IN` | Tempo de expiração do token (ex.: `7d`) |
+| `APP_USERNAME` | Usuário de acesso à aplicação |
+| `APP_PASSWORD` | Senha de acesso à aplicação |
 
-### 3. Criar o banco de dados no MySQL
+> Se `DATABASE_URL` estiver definida, as variáveis `DB_*` são ignoradas.
 
-O Prisma aplica apenas as **tabelas**; o **database** precisa existir antes:
-
-```sql
-CREATE DATABASE marmitas_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-```
-
-O nome deve coincidir com `DB_NAME` no `.env`.
-
-### 4. Gerar o Prisma Client e aplicar migrations
+### 3. Aplicar migrations e gerar o Prisma Client
 
 ```bash
-npm run db:generate
 npm run db:migrate
 ```
 
-- **`db:migrate`** — modo desenvolvimento (`prisma migrate dev`); na primeira execução aplica a migration inicial.
-- Em produção/CI, use **`npm run db:migrate:deploy`** (`prisma migrate deploy`).
-
-### 5. (Opcional) Popular dados iniciais
+### 4. (Opcional) Popular dados iniciais
 
 ```bash
 npm run db:seed
@@ -80,7 +125,7 @@ npm run db:seed
 
 Insere as 4 marmitas padrão (P, M, G e Fit) na tabela `Marmitas`.
 
-### 6. Subir a API
+### 5. Subir a API
 
 Desenvolvimento (hot reload):
 
@@ -95,13 +140,11 @@ npm run build
 npm start
 ```
 
-### 7. Verificar se está no ar
+### 6. Verificar se está no ar
 
 ```bash
 curl -sS "http://localhost:3000/health"
-# {"status":"ok"}
-
-curl -sS "http://localhost:3000/api/marmitas"
+# {"status":"ok","db":"ok"}
 ```
 
 ---
@@ -116,7 +159,7 @@ Requisição HTTP
         └─► Controller   — parse e validação da entrada, retorno da resposta
               └─► Service     — regras de negócio e orquestração
                     └─► Repository  — acesso a dados (Prisma)
-                          └─► MySQL
+                          └─► PostgreSQL
 ```
 
 **Princípios aplicados:**
@@ -167,7 +210,8 @@ prisma/
 |---|---|
 | **Marmita** | Produto vendido; possui `descricao`, `precoBase`, `adicionalEmbalagem` e `peso` |
 | **Cliente** | Comprador; possui `nome`, `telefone`, `endereco` e `obs` |
-| **Pedido** | Vínculo entre cliente e marmita; registra `quantidadeMarmitas` e `valorTotal` |
+| **Pedido** | Vínculo entre cliente e marmitas; suporta múltiplos itens via `PedidoItens` |
+| **PedidoItem** | Item de um pedido — referencia uma marmita com quantidade e preço unitário |
 | **Pagamento** | Associado 1-para-1 a um pedido |
 
 ### Status do Pedido
@@ -193,7 +237,13 @@ PENDENTE → CONFIRMADO → PREPARANDO → ENTREGUE
 
 | Método | Rota | Descrição |
 |--------|------|-----------|
-| `GET` | `/health` | Verifica se a API está no ar |
+| `GET` | `/health` | Verifica API e conectividade com o banco |
+
+### Autenticação
+
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| `POST` | `/api/auth/login` | Autentica e retorna JWT |
 
 ### Marmitas
 
@@ -210,28 +260,6 @@ PENDENTE → CONFIRMADO → PREPARANDO → ENTREGUE
 | `pageSize` | number | `20` | Itens por página (máx. `100`) |
 | `search` | string | — | Filtro por descrição |
 
-**Resposta — `GET /api/marmitas`:**
-
-```json
-{
-  "data": [
-    {
-      "idMarmita": 1,
-      "descricao": "Marmita P",
-      "precoBase": "12.00",
-      "adicionalEmbalagem": "0.50",
-      "peso": "300.00"
-    }
-  ],
-  "meta": {
-    "total": 4,
-    "page": 1,
-    "pageSize": 20,
-    "totalPages": 1
-  }
-}
-```
-
 ---
 
 ### Clientes
@@ -243,55 +271,26 @@ PENDENTE → CONFIRMADO → PREPARANDO → ENTREGUE
 | `PUT` | `/api/clientes/:id` | Atualiza dados de um cliente |
 | `DELETE` | `/api/clientes/:id` | Remove um cliente |
 
-**Parâmetros de query — `GET /api/clientes`:**
+---
 
-| Parâmetro | Tipo | Padrão | Descrição |
-|-----------|------|--------|-----------|
-| `page` | number | `1` | Página atual |
-| `pageSize` | number | `20` | Itens por página (máx. `100`) |
-| `search` | string | — | Filtro por nome |
+### Pedidos
 
-**Body — `POST /api/clientes`:**
+| Método | Rota | Descrição |
+|--------|------|-----------|
+| `GET` | `/api/pedidos` | Lista pedidos com paginação e filtros |
+| `POST` | `/api/pedidos` | Cria um novo pedido |
+| `PUT` | `/api/pedidos/:id` | Atualiza um pedido |
+| `DELETE` | `/api/pedidos/:id` | Remove um pedido |
+
+**Body — `POST /api/pedidos`:**
 
 | Campo | Tipo | Obrigatório | Descrição |
 |-------|------|-------------|-----------|
-| `nome` | string | sim | Nome do cliente (máx. 255) |
-| `endereco` | string | sim | Endereço (máx. 255) |
-| `telefone` | string | sim | Telefone (10–12 dígitos) |
-| `obs` | string | não | Observações (máx. 255) |
-
-**Body — `PUT /api/clientes/:id`:**
-
-Todos os campos são opcionais; ao menos um deve ser informado.
-
-| Campo | Tipo | Descrição |
-|-------|------|-----------|
-| `nome` | string | Nome do cliente (máx. 255) |
-| `endereco` | string | Endereço (máx. 255) |
-| `telefone` | string | Telefone (10–12 dígitos) |
-| `obs` | string | Observações (máx. 255) |
-
-**Resposta — `GET /api/clientes`:**
-
-```json
-{
-  "data": [
-    {
-      "idClientes": 1,
-      "nome": "João Silva",
-      "telefone": "11999999999",
-      "endereco": "Rua das Flores, 123",
-      "obs": null
-    }
-  ],
-  "meta": {
-    "total": 1,
-    "page": 1,
-    "pageSize": 20,
-    "totalPages": 1
-  }
-}
-```
+| `clienteId` | number | sim | ID do cliente |
+| `itens` | array | sim | Lista de itens (mínimo 1) |
+| `itens[].marmitaId` | number | sim | ID da marmita |
+| `itens[].quantidade` | number | sim | Quantidade |
+| `dataEntrega` | date | não | Data de entrega |
 
 ---
 
@@ -314,14 +313,11 @@ Os testes ficam junto ao arquivo testado (`<nome>.test.ts`). São cobertos por t
 | `npm run db:generate` | Regenera o Prisma Client após mudanças no schema |
 | `npm run db:seed` | Popula dados iniciais |
 
-### DBeaver / clientes SQL
-
-Use o database definido em `DB_NAME` na string de conexão (ex.: `jdbc:mysql://localhost:3306/marmitas_db`). Conectar apenas em `localhost:3306/` sem informar o banco não exibe as tabelas do projeto.
-
 ---
 
 ## Problemas comuns
 
 - **`EACCES` em `node_modules/.prisma`**: problema de permissões na pasta; corrija o dono da pasta ou reinstale as dependências com o usuário correto.
-- **Migration "já aplicada" mas sem tabelas**: confirme que está conectado ao mesmo `DB_NAME` definido no `.env` e execute `SHOW TABLES` nesse banco.
-- **`DATABASE_URL` não encontrada**: não defina essa variável — a URL é montada automaticamente a partir das variáveis `DB_*`.
+- **Migration com SQL MySQL em banco PostgreSQL**: as migrations antigas usavam backticks (sintaxe MySQL). A migration atual (`20260513000000_init`) já está em PostgreSQL correto.
+- **Migration marcada como falha no banco**: execute `npx tsx scripts/prisma-env.ts migrate resolve --rolled-back <nome-da-migration>` para desmarcar, depois rode `npm run db:migrate:deploy`.
+- **`Cannot find module '@/...'` em runtime**: o build deve usar `tsc && tsc-alias` para reescrever os aliases de caminho no JS compilado.
