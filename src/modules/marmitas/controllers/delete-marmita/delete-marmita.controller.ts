@@ -1,0 +1,14 @@
+import { NextFunction, Request, Response } from 'express';
+import { deleteMarmitaParamsSchema, deleteMarmitaQuerySchema } from '../../dtos/delete-marmita/delete-marmita.dto';
+import { deleteMarmita } from '@/composition/marmita-deletion';
+
+export async function deleteMarmitaController(req: Request, res: Response, next: NextFunction) {
+  try {
+    const { id } = deleteMarmitaParamsSchema.parse(req.params);
+    const { force } = deleteMarmitaQuerySchema.parse(req.query);
+    await deleteMarmita(id, force);
+    res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+}
