@@ -12,6 +12,6 @@ const deleteMarmitaPorts: DeleteMarmitaPorts = {
   deleteMarmita: deleteMarmitaRepository,
 };
 
-export async function deleteMarmita(id: number) {
-  return deleteMarmitaService(id, deleteMarmitaPorts);
+export async function deleteMarmita(id: number, force: boolean) {
+  return deleteMarmitaService(id, force, deleteMarmitaPorts);
 }

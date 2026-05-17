@@ -12,6 +12,6 @@ const deleteClientePorts: DeleteClientePorts = {
   deleteCliente: deleteClienteRepository,
 };
 
-export async function deleteCliente(id: number) {
-  return deleteClienteService(id, deleteClientePorts);
+export async function deleteCliente(id: number, force: boolean) {
+  return deleteClienteService(id, force, deleteClientePorts);
 }

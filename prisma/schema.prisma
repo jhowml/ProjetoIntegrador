@@ -18,11 +18,12 @@ model User {
 }
 
 model Cliente {
-  idClientes Int      @id @default(autoincrement())
-  nome       String   @db.VarChar(45)
-  telefone   String   @db.VarChar(45)
-  endereco   String?  @db.VarChar(45)
-  obs        String?  @db.VarChar(100)
+  idClientes Int       @id @default(autoincrement())
+  nome       String    @db.VarChar(45)
+  telefone   String    @db.VarChar(45)
+  endereco   String?   @db.VarChar(45)
+  obs        String?   @db.VarChar(100)
+  deletedAt  DateTime? @db.Timestamp(3)
   pedidos    Pedido[]
 
   @@map("Clientes")

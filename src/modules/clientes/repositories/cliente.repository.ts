@@ -9,7 +9,8 @@ export async function listclientes(query: ListClientesDTO) {
   const { take, skip } = paginate(query.page, query.pageSize);
 
   const where: Prisma.ClienteWhereInput = {
-    ...(query.search && { nome: { contains: query.search } }),
+    deletedAt: null,
+    ...(query.search && { nome: { contains: query.search, mode: 'insensitive' } }),
   };
 
   const [data, total] = await prisma.$transaction([
@@ -25,7 +26,7 @@ export async function createCliente(data: CreateClienteDTO) {
 }
 
 export async function findClienteById(id: number) {
-  return prisma.cliente.findUnique({ where: { idClientes: id } });
+  return prisma.cliente.findFirst({ where: { idClientes: id, deletedAt: null } });
 }
 
 export async function updateCliente(id: number, data: UpdateClienteBodyDTO) {
@@ -37,5 +38,5 @@ export async function countPedidosByCliente(id: number) {
 }
 
 export async function deleteCliente(id: number) {
-  return prisma.cliente.delete({ where: { idClientes: id } });
+  return prisma.cliente.update({ where: { idClientes: id }, data: { deletedAt: new Date() } });
 }
