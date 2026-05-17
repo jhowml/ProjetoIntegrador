@@ -1,12 +1,14 @@
-import { ConflictError, NotFoundError } from '@/shared/errors/AppError';
+import { HasPedidosError, NotFoundError } from '@/shared/errors/AppError';
 import type { DeleteClientePorts } from '@/composition/cliente-deletion.ports';
 
-export async function deleteCliente(id: number, ports: DeleteClientePorts) {
+export async function deleteCliente(id: number, force: boolean, ports: DeleteClientePorts) {
   const existing = await ports.findClienteById(id);
   if (!existing) throw new NotFoundError('Cliente');
 
-  const pedidosCount = await ports.countPedidosByCliente(id);
-  if (pedidosCount > 0) throw new ConflictError('Cliente possui pedidos e não pode ser removido');
+  if (!force) {
+    const pedidosCount = await ports.countPedidosByCliente(id);
+    if (pedidosCount > 0) throw new HasPedidosError('Cliente');
+  }
 
   await ports.deleteCliente(id);
 }

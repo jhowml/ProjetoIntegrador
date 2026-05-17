@@ -10,7 +10,7 @@ export async function listMarmitas(query: ListMarmitasDTO) {
 
   const where: Prisma.MarmitaWhereInput = {
     deletedAt: null,
-    ...(query.search && { descricao: { contains: query.search } }),
+    ...(query.search && { descricao: { contains: query.search, mode: 'insensitive' } }),
   };
 
   const [data, total] = await prisma.$transaction([

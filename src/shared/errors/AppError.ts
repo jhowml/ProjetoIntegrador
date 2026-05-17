@@ -33,3 +33,9 @@ export class ConflictError extends AppError {
     super(message, 409, 'CONFLICT');
   }
 }
+
+export class HasPedidosError extends AppError {
+  constructor(resource: string) {
+    super(`${resource} possui pedidos associados.`, 409, 'HAS_PEDIDOS');
+  }
+}

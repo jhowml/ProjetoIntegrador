@@ -13,13 +13,13 @@ export async function listPedidos(query: ListPedidosDTO) {
     ...(query.marmitaId && { itens: { some: { marmitasIdMarmita: query.marmitaId } } }),
     ...(query.search && {
       OR: [
-        { cliente: { nome: { contains: query.search } } },
-        { itens: { some: { marmita: { descricao: { contains: query.search } } } } },
+        { cliente: { nome: { contains: query.search, mode: 'insensitive' } } },
+        { itens: { some: { marmita: { descricao: { contains: query.search, mode: 'insensitive' } } } } },
         ...(!isNaN(Number(query.search)) ? [{ idPedidos: Number(query.search) }] : []),
       ],
     }),
     ...((query.dataInicio || query.dataFim) && {
-      dataPedido: {
+      dataEntrega: {
         ...(query.dataInicio && { gte: query.dataInicio }),
         ...(query.dataFim && { lte: query.dataFim }),
       },
