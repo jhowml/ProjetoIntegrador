@@ -5,7 +5,7 @@ export async function getDashboardData() {
     prisma.pedido.count(),
     prisma.pedido.count({ where: { status: 'PENDENTE' } }),
     prisma.pedido.count({ where: { status: 'ENTREGUE' } }),
-    prisma.cliente.count(),
+    prisma.cliente.count({ where: { deletedAt: null } }),
     prisma.pedido.findMany({
       take: 5,
       orderBy: { dataPedido: 'desc' },
